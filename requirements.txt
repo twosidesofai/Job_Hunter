@@ -1,0 +1,7 @@
+# requirements.txt
+requests
+beautifulsoup4
+python-docx
+fpdf
+sqlalchemy
+jinja2
