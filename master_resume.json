@@ -1,0 +1,43 @@
+{
+  "name": "John Doe",
+  "contact": {
+    "email": "john.doe@email.com",
+    "phone": "123-456-7890",
+    "location": "Remote, USA"
+  },
+  "summary": "Experienced software engineer with a focus on Python and distributed systems.",
+  "experience": [
+    {
+      "title": "Software Engineer",
+      "company": "TechCorp",
+      "start_date": "2021-01-01",
+      "end_date": "2023-06-01",
+      "description": "Developed scalable backend services in Python.",
+      "skills": ["Python", "APIs", "Distributed Systems"]
+    },
+    {
+      "title": "Backend Developer",
+      "company": "WebSolutions",
+      "start_date": "2019-05-01",
+      "end_date": "2020-12-01",
+      "description": "Built RESTful APIs and integrated third-party services.",
+      "skills": ["Python", "REST APIs", "Integration"]
+    },
+    {
+      "title": "Data Scientist",
+      "company": "DataX",
+      "start_date": "2017-03-01",
+      "end_date": "2019-04-01",
+      "description": "Analyzed data and built machine learning models.",
+      "skills": ["Python", "Machine Learning", "Data Analysis"]
+    }
+  ],
+  "education": [
+    {
+      "degree": "B.Sc. Computer Science",
+      "school": "State University",
+      "year": "2016"
+    }
+  ],
+  "skills": ["Python", "Distributed Systems", "APIs", "Machine Learning", "REST APIs", "Data Analysis"]
+}

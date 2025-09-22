@@ -1,0 +1,9 @@
+[
+  {
+    "title": "Example Job Title",
+    "company": "Example Company",
+    "description": "Job description goes here.",
+    "requirements": "List, of, requirements",
+    "url": "https://example.com/job/123"
+  }
+]
