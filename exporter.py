@@ -7,10 +7,20 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 from datetime import datetime
 
-from docx import Document
-from docx.shared import Inches
-from docx.enum.text import WD_ALIGN_PARAGRAPH
-from fpdf import FPDF
+# Optional imports with fallbacks
+try:
+    from docx import Document
+    from docx.shared import Inches
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    DOCX_AVAILABLE = True
+except ImportError:
+    DOCX_AVAILABLE = False
+
+try:
+    from fpdf import FPDF
+    FPDF_AVAILABLE = True
+except ImportError:
+    FPDF_AVAILABLE = False
 
 from base_agent import BaseAgent, AgentResponse
 from models import TailoredResume, CoverLetter, JobPosting, ExportFormat
@@ -235,6 +245,14 @@ class ExporterAgent(BaseAgent):
     
     def _create_resume_pdf(self, resume: TailoredResume, file_path: str):
         """Create PDF version of resume."""
+        if not FPDF_AVAILABLE:
+            self.logger.error("FPDF not available, cannot create PDF")
+            # Create a placeholder text file instead
+            with open(file_path.replace('.pdf', '.txt'), 'w') as f:
+                f.write(f"Resume for {resume.personal_info.get('name', 'Unknown')}\n")
+                f.write(f"Summary: {resume.summary}\n")
+            return
+            
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", size=12)
@@ -313,6 +331,14 @@ class ExporterAgent(BaseAgent):
     
     def _create_resume_docx(self, resume: TailoredResume, file_path: str):
         """Create DOCX version of resume."""
+        if not DOCX_AVAILABLE:
+            self.logger.error("python-docx not available, cannot create DOCX")
+            # Create a placeholder text file instead
+            with open(file_path.replace('.docx', '.txt'), 'w') as f:
+                f.write(f"Resume for {resume.personal_info.get('name', 'Unknown')}\n")
+                f.write(f"Summary: {resume.summary}\n")
+            return
+            
         doc = Document()
         
         # Personal Info
@@ -365,6 +391,13 @@ class ExporterAgent(BaseAgent):
     
     def _create_cover_letter_pdf(self, cover_letter: CoverLetter, file_path: str):
         """Create PDF version of cover letter."""
+        if not FPDF_AVAILABLE:
+            self.logger.error("FPDF not available, cannot create PDF")
+            # Create a placeholder text file instead
+            with open(file_path.replace('.pdf', '.txt'), 'w') as f:
+                f.write(cover_letter.content)
+            return
+            
         pdf = FPDF()
         pdf.add_page()
         pdf.set_font("Arial", size=11)
@@ -387,6 +420,13 @@ class ExporterAgent(BaseAgent):
     
     def _create_cover_letter_docx(self, cover_letter: CoverLetter, file_path: str):
         """Create DOCX version of cover letter."""
+        if not DOCX_AVAILABLE:
+            self.logger.error("python-docx not available, cannot create DOCX")
+            # Create a placeholder text file instead
+            with open(file_path.replace('.docx', '.txt'), 'w') as f:
+                f.write(cover_letter.content)
+            return
+            
         doc = Document()
         
         # Date

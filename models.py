@@ -14,12 +14,16 @@ except ImportError:
     
     # Fallback base class
     class BaseModel:
+        def __init__(self, **kwargs):
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+                
         def model_dump(self):
-            return self.__dict__
+            return {k: v for k, v in self.__dict__.items() if not k.startswith('_')}
     
     # Mock Field for compatibility
     def Field(**kwargs):
-        return None
+        return kwargs.get('default', None)
     
     # Mock HttpUrl
     HttpUrl = str

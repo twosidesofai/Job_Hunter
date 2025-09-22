@@ -4,45 +4,65 @@ Application tracker agent that manages job application data using OpenAI agent s
 import json
 from datetime import datetime, timedelta
 from typing import List, Dict, Any, Optional
-from sqlalchemy import create_engine, Column, String, DateTime, Text, Boolean, Integer
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.dialects.postgresql import UUID
 import uuid
+
+# Optional SQLAlchemy imports
+try:
+    from sqlalchemy import create_engine, Column, String, DateTime, Text, Boolean, Integer
+    from sqlalchemy.ext.declarative import declarative_base
+    from sqlalchemy.orm import sessionmaker, Session
+    from sqlalchemy.dialects.postgresql import UUID
+    SQLALCHEMY_AVAILABLE = True
+    Base = declarative_base()
+except ImportError:
+    SQLALCHEMY_AVAILABLE = False
+    Base = None
 
 from base_agent import BaseAgent, AgentResponse
 from models import JobPosting, JobApplication, JobStatus
 from config import Config
 
-Base = declarative_base()
-
-class JobApplicationRecord(Base):
-    """SQLAlchemy model for job applications."""
-    __tablename__ = "job_applications"
-    
-    id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
-    job_title = Column(String, nullable=False)
-    company_name = Column(String, nullable=False)
-    job_description = Column(Text)
-    job_requirements = Column(Text)
-    posting_url = Column(String)
-    location = Column(String)
-    salary_range = Column(String)
-    job_type = Column(String)
-    remote_ok = Column(Boolean, default=False)
-    source = Column(String)
-    posted_date = Column(DateTime)
-    scraped_date = Column(DateTime, default=datetime.utcnow)
-    
-    status = Column(String, default=JobStatus.FOUND.value)
-    applied_date = Column(DateTime)
-    resume_path = Column(String)
-    cover_letter_path = Column(String)
-    notes = Column(Text)
-    follow_up_date = Column(DateTime)
-    
-    created_at = Column(DateTime, default=datetime.utcnow)
-    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+if SQLALCHEMY_AVAILABLE:
+    class JobApplicationRecord(Base):
+        """SQLAlchemy model for job applications."""
+        __tablename__ = "job_applications"
+        
+        id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+        job_title = Column(String, nullable=False)
+        company_name = Column(String, nullable=False)
+        job_description = Column(Text)
+        job_requirements = Column(Text)
+        posting_url = Column(String)
+        location = Column(String)
+        salary_range = Column(String)
+        job_type = Column(String)
+        remote_ok = Column(Boolean, default=False)
+        source = Column(String)
+        posted_date = Column(DateTime)
+        scraped_date = Column(DateTime, default=datetime.utcnow)
+        
+        status = Column(String, default=JobStatus.FOUND.value)
+        applied_date = Column(DateTime)
+        resume_path = Column(String)
+        cover_letter_path = Column(String)
+        notes = Column(Text)
+        follow_up_date = Column(DateTime)
+        
+        created_at = Column(DateTime, default=datetime.utcnow)
+        updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+else:
+    # Fallback in-memory storage
+    class JobApplicationRecord:
+        """Fallback storage for job applications when SQLAlchemy is not available."""
+        _storage = []
+        
+        def __init__(self, **kwargs):
+            self.id = str(uuid.uuid4())
+            self.created_at = datetime.utcnow()
+            self.updated_at = datetime.utcnow()
+            for key, value in kwargs.items():
+                setattr(self, key, value)
+            JobApplicationRecord._storage.append(self)
 
 class TrackerAgent(BaseAgent):
     """
@@ -72,11 +92,15 @@ class TrackerAgent(BaseAgent):
         super().__init__("Tracker", system_prompt)
         self.supported_functions = ["analyze_applications", "generate_insights", "recommend_actions"]
         
-        # Initialize database
-        self.engine = create_engine(Config.DATABASE_URL)
-        Base.metadata.create_all(self.engine)
-        SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
-        self.db_session = SessionLocal()
+        # Initialize database if SQLAlchemy is available
+        if SQLALCHEMY_AVAILABLE:
+            self.engine = create_engine(Config.DATABASE_URL)
+            Base.metadata.create_all(self.engine)
+            SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
+            self.db_session = SessionLocal()
+        else:
+            self.logger.warning("SQLAlchemy not available, using in-memory storage")
+            self.db_session = None
     
     def execute_function(self, function_name: str, args: Dict[str, Any]) -> Any:
         """Execute specific tracking functions."""
@@ -469,5 +493,5 @@ class TrackerAgent(BaseAgent):
     
     def __del__(self):
         """Clean up database session."""
-        if hasattr(self, 'db_session'):
+        if hasattr(self, 'db_session') and self.db_session is not None:
             self.db_session.close()

@@ -2,15 +2,31 @@
 Job fetcher agent that scrapes and normalizes job postings using OpenAI agent structure.
 """
 import json
-import requests
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timedelta
-from bs4 import BeautifulSoup
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+
+# Optional imports with fallbacks
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
+    
+try:
+    from bs4 import BeautifulSoup
+    BS4_AVAILABLE = True
+except ImportError:
+    BS4_AVAILABLE = False
+    
+try:
+    from selenium import webdriver
+    from selenium.webdriver.chrome.options import Options
+    from selenium.webdriver.common.by import By
+    from selenium.webdriver.support.ui import WebDriverWait
+    from selenium.webdriver.support import expected_conditions as EC
+    SELENIUM_AVAILABLE = True
+except ImportError:
+    SELENIUM_AVAILABLE = False
 
 from base_agent import BaseAgent, AgentResponse
 from models import JobPosting, SearchCriteria
@@ -254,6 +270,10 @@ class JobsFetcherAgent(BaseAgent):
     
     def _extract_job_data_from_html(self, html_content: str, source: str) -> Dict[str, Any]:
         """Extract job data from HTML content using BeautifulSoup."""
+        if not BS4_AVAILABLE:
+            self.logger.warning("BeautifulSoup not available, using basic extraction")
+            return {"title": "Sample Job", "content": html_content[:100]}
+            
         soup = BeautifulSoup(html_content, 'html.parser')
         
         # This would be specific to each job board's HTML structure
