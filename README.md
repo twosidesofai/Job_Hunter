@@ -1,17 +1,53 @@
-# Job Hunter
+# Overview
 
-## Overview
-Job Hunter is a modular Python application that automates the job search and application process. Now supports starting from a Word resume (.docx) and agentic pipeline. It can:
-- Scrape or query multiple job boards (Adzuna, SerpApi, Indeed, ZipRecruiter, Monster, Built In, JPMorgan, and more)
-- Normalize job postings into a common data model
-- Generate tailored resumes and personalized cover letters for each job
-- Export resumes and cover letters to Word/PDF format in an Applications folder
-- Log applied jobs in a local SQLite database with timestamps and status
-- (Optional) Integrate with email or job portal APIs to auto-submit applications
-- Suggest relevant companies/boards to scrape based on your resume using AI/ML
-- Provide a dynamic UI to control search criteria and select companies/boards
-- Allow manual job entry and import from JSON
- - Ingest a Word resume (.docx), convert to structured JSON, and run the agentic pipeline: suggest roles/boards → fetch jobs → dedupe → rank → tailor resume/cover letter → export → track
+Job Hunter is an AI-powered Python application that streamlines your job search and application workflow from start to finish:
+
+1. **Start in the UI:** Upload your Word resume, set job criteria, and select job boards or companies to target.
+2. **Resume Ingestion:** Your resume is parsed and converted to structured JSON for accurate matching and customization.
+3. **Job Discovery:** The system scrapes and queries multiple job boards, normalizes postings, and suggests relevant companies using AI/ML.
+4. **Job Ranking:** Jobs are deduplicated and ranked for fit based on your profile and preferences.
+5. **Application Generation:** Tailored resumes and personalized cover letters are created for each job, ensuring ATS-friendly formatting.
+6. **Export & Submission:** Documents are exported to Word/PDF and can be saved locally or submitted via APIs (optional).
+7. **Tracking:** All applications are logged in a local database, with status updates and analytics for your review.
+
+This end-to-end pipeline automates repetitive tasks, provides a clean and customizable workflow, and helps you focus on landing the right job.
+# Workflow Overview
+
+Job Hunter Workflow (from UI to DB):
+
+1. **User Interface (UI)**
+	- User uploads/selects a Word resume (.docx)
+	- Sets job search criteria (role, location, salary, remote, etc.)
+	- Selects or adds job boards/companies to target
+
+2. **Resume Ingestion**
+	- System parses the Word resume and converts it to structured JSON
+	- Validates and normalizes resume data for downstream processing
+
+3. **Job Discovery & Matching**
+	- Scrapes/queries multiple job boards (Adzuna, SerpApi, Indeed, etc.)
+	- Normalizes job postings into a common data model
+	- Suggests relevant companies/boards using AI/ML based on resume content
+	- Allows manual job entry or import from JSON
+	- Deduplicates job postings
+
+4. **Job Ranking & Selection**
+	- Ranks jobs for fit using resume, preferences, and job data
+	- Presents ranked jobs in the UI for user review and selection
+
+5. **Application Generation**
+	- Generates tailored resumes and personalized cover letters for each selected job
+	- Ensures formatting is ATS-friendly
+
+6. **Export & Submission**
+	- Exports resumes and cover letters to Word/PDF in the Applications folder
+	- (Optional) Submits applications via email or job portal APIs
+
+7. **Tracking & Logging**
+	- Logs applied jobs in a local SQLite database with timestamps and status
+	- Tracks application status and provides analytics
+
+
 
 ## Features
 - **jobs_fetcher.py**: Gathers and normalizes job postings from APIs and scrapers, with deduplication
