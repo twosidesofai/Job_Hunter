@@ -11,25 +11,59 @@ class JobSearchUI:
         self.keywords = tk.StringVar()
         self.location = tk.StringVar()
         self.filters = tk.StringVar()
+        self.resume_path = tk.StringVar()
+        self.suggested_titles = []
+        self.suggested_sources = []
         self.company_vars = {}
         self.company_list = ["Adzuna", "SerpApi", "Indeed", "ZipRecruiter", "Monster", "Built In", "JPMorgan"]
         self.result = None
         self._build_ui()
 
     def _build_ui(self):
-        tk.Label(self.root, text="Keywords:").grid(row=0, column=0, sticky="e")
-        tk.Entry(self.root, textvariable=self.keywords).grid(row=0, column=1)
-        tk.Label(self.root, text="Location:").grid(row=1, column=0, sticky="e")
-        tk.Entry(self.root, textvariable=self.location).grid(row=1, column=1)
-        tk.Label(self.root, text="Filters (JSON):").grid(row=2, column=0, sticky="e")
-        tk.Entry(self.root, textvariable=self.filters).grid(row=2, column=1)
-        tk.Label(self.root, text="Companies/Boards to Scrape:").grid(row=3, column=0, sticky="ne")
+        tk.Label(self.root, text="Resume (.docx):").grid(row=0, column=0, sticky="e")
+        tk.Entry(self.root, textvariable=self.resume_path).grid(row=0, column=1)
+        tk.Button(self.root, text="Upload", command=self._upload_resume).grid(row=0, column=2)
+        tk.Label(self.root, text="Keywords:").grid(row=1, column=0, sticky="e")
+        tk.Entry(self.root, textvariable=self.keywords).grid(row=1, column=1)
+        tk.Label(self.root, text="Location:").grid(row=2, column=0, sticky="e")
+        tk.Entry(self.root, textvariable=self.location).grid(row=2, column=1)
+        tk.Label(self.root, text="Filters (JSON):").grid(row=3, column=0, sticky="e")
+        tk.Entry(self.root, textvariable=self.filters).grid(row=3, column=1)
+        tk.Label(self.root, text="Companies/Boards to Scrape:").grid(row=4, column=0, sticky="ne")
         self.company_frame = tk.Frame(self.root)
-        self.company_frame.grid(row=3, column=1, sticky="w")
+        self.company_frame.grid(row=4, column=1, sticky="w")
         self._refresh_company_checkboxes()
-        tk.Button(self.root, text="Add Board", command=self._add_company_dialog).grid(row=4, column=1, sticky="w")
-        tk.Button(self.root, text="Remove Selected", command=self._remove_selected_companies).grid(row=5, column=1, sticky="w")
-        tk.Button(self.root, text="Search", command=self._on_search).grid(row=6, column=0, columnspan=2)
+        tk.Button(self.root, text="Add Board", command=self._add_company_dialog).grid(row=5, column=1, sticky="w")
+        tk.Button(self.root, text="Remove Selected", command=self._remove_selected_companies).grid(row=6, column=1, sticky="w")
+        tk.Button(self.root, text="Preview Suggestions", command=self._preview_suggestions).grid(row=7, column=0, columnspan=2)
+        tk.Button(self.root, text="Search", command=self._on_search).grid(row=8, column=0, columnspan=2)
+
+    def _upload_resume(self):
+        from tkinter import filedialog
+        path = filedialog.askopenfilename(filetypes=[("Word Documents", "*.docx")])
+        if path:
+            self.resume_path.set(path)
+
+    def _preview_suggestions(self):
+        import os
+        import sys
+        sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+        from ai_company_suggester import AICompanySuggester
+        from ingest.resume_ingest import parse_docx_to_profile
+        import json
+        if not self.resume_path.get():
+            messagebox.showerror("Error", "Please upload a resume.docx first.")
+            return
+        profile = parse_docx_to_profile(self.resume_path.get())
+        with open('master_resume.json', 'w') as f:
+            json.dump(profile, f, indent=2)
+        suggester = AICompanySuggester()
+        suggestions = suggester.suggest('master_resume.json')
+        self.suggested_titles = suggestions.get('suggested_titles', [])
+        self.suggested_sources = suggestions.get('sources', [])
+        # Show preview dialog
+        preview = f"Suggested Titles:\n" + '\n'.join(self.suggested_titles) + "\n\nSuggested Boards/Sources:\n" + '\n'.join([s['name'] for s in self.suggested_sources])
+        messagebox.showinfo("Suggestions", preview)
 
     def _refresh_company_checkboxes(self):
         for widget in self.company_frame.winfo_children():

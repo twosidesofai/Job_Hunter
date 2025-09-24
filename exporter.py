@@ -1,3 +1,9 @@
+# Simple export_resume function for testing
+def export_resume(resume, output_path):
+	# This is a stub for testing
+	with open(output_path, 'w') as f:
+		f.write(str(resume))
+	return True
 # exporter.py
 """
 Exports resumes and cover letters to Word/PDF format in the Applications folder.
